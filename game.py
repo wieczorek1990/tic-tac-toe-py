@@ -3,40 +3,44 @@
 import json
 
 
+PLAYERS = (1, 2)
+
 def load():
   fp = open('board.json')
-  return json.load(fp)
-
-def winner(board):
+  board = json.load(fp)
   n = len(board)
-  for col in board:
-    if n != len(col):
+  for row in board:
+    if n != len(row):
       raise ValueError("Bad dimension size")
+  return board
 
-  rows = board
+def rows(board):
+  return board
 
-  cols = list(zip(*board))
+def cols(board):
+  return list(zip(*board))
 
+def diags(board):
+  n = len(board)
   ascending = range(n)
   descending = reversed(ascending)
   iterators = (zip(ascending, ascending), zip(descending, ascending))
-  diags = [[board[row][col] for row, col in iterator] for iterator in iterators]
+  return [[board[row][col] for row, col in iterator] for iterator in iterators]
 
-  paths = rows + cols + diags
+def won(player, paths):
+  for path in paths:
+    same = map(lambda p: player == p, path)
+    if all(same):
+      return True
+  return False
 
-  for player in (1, 2):
-    for path in paths:
-      same = map(lambda p: player == p, path)
-      if all(same):
-        return player
+def rate(board):
+  paths = rows(board) + cols(board) + diags(board)
+  return [(player, won(player, paths)) for player in PLAYERS]
 
-  return 0
-
-board = load()
-print(board)
-player = winner(board)
-if player != 0:
-  print("Player {} won".format(player))
-else:
-  print("No winner")
+if __name__ == '__main__':
+  board = load()
+  print(board)
+  state = rate(board)
+  print(state)
 
